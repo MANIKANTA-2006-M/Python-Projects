@@ -1,0 +1,122 @@
+from datetime import datetime
+
+class Node:
+    def __init__(self, booking_id, guest_name, checkin_date):
+        self.booking_id = booking_id
+        self.guest_name = guest_name
+        self.checkin_date = datetime.strptime(checkin_date, "%Y-%m-%d")
+        self.prev = None
+        self.next = None
+
+
+class BookingList:
+    def __init__(self):
+        self.head = None
+
+    def append(self, booking_id, guest_name, checkin_date):
+        new_node = Node(booking_id, guest_name, checkin_date)
+
+        if not self.head:
+            self.head = new_node
+            return
+
+        last = self.head
+        while last.next:
+            last = last.next
+
+        last.next = new_node
+        new_node.prev = last
+
+    def find(self, booking_id):
+        current = self.head
+        while current:
+            if current.booking_id == booking_id:
+                return current
+            current = current.next
+        return None
+
+    def remove(self, node):
+        if not node:
+            return
+
+        if node.prev:
+            node.prev.next = node.next
+        else:
+            self.head = node.next
+
+        if node.next:
+            node.next.prev = node.prev
+
+        node.prev = None
+        node.next = None
+
+    def insert_sorted(self, node):
+        if not self.head:
+            self.head = node
+            return
+
+        current = self.head
+
+        while current and current.checkin_date <= node.checkin_date:
+            current = current.next
+
+        if current == self.head:
+            node.next = self.head
+            self.head.prev = node
+            self.head = node
+        elif current is None:
+            last = self.head
+            while last.next:
+                last = last.next
+            last.next = node
+            node.prev = last
+        else:
+            node.prev = current.prev
+            node.next = current
+            current.prev.next = node
+            current.prev = node
+
+    def reschedule_booking(self, booking_id, new_date):
+        node = self.find(booking_id)
+
+        if not node:
+            print(f"Booking ID {booking_id} not found.")
+            return
+
+        try:
+            new_date = datetime.strptime(new_date, "%Y-%m-%d")
+        except ValueError:
+            print("Invalid check-in date format.")
+            return
+
+        self.remove(node)
+        node.checkin_date = new_date
+        self.insert_sorted(node)
+
+    def __str__(self):
+        result = []
+        current = self.head
+
+        while current:
+            result.append(
+                f"[{current.booking_id}, {current.guest_name}, "
+                f"{current.checkin_date.strftime('%Y-%m-%d')}]"
+            )
+            current = current.next
+
+        return " <-> ".join(result)
+
+
+booking_list = BookingList()
+
+booking_list.append(101, "Alice", "2024-06-10")
+booking_list.append(102, "Bob", "2024-06-15")
+booking_list.append(103, "Charlie", "2024-06-20")
+
+print("Before reschedule:")
+print(booking_list)
+
+booking_list.reschedule_booking(102, "2024-06-05")
+
+print("After reschedule:")
+print(booking_list)
