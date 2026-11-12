@@ -1,0 +1,61 @@
+def get_student_submission():
+    name = input("Enter student name: ")
+
+    try:
+        raw_answers = input(
+            "Enter answers as comma-separated numbers (e.g., 1,2,3): "
+        )
+
+        answers = [int(ans.strip()) for ans in raw_answers.split(",")]
+
+    except ValueError:
+        raise TypeError("Answers must be a list of integers.")
+
+    return {"name": name, "answers": answers}
+
+
+submissions = []
+
+try:
+    n = int(input("Enter number of student submissions: "))
+
+    for _ in range(n):
+        try:
+            submission = get_student_submission()
+            submissions.append(submission)
+
+        except Exception as e:
+            print("Error collecting submission:", e)
+
+except ValueError:
+    print("Invalid number of submissions.")
+
+print("\n--- Processing Submissions ---\n")
+
+for submission in submissions:
+    try:
+        name = submission["name"]
+        answers = submission["answers"]
+
+        if not isinstance(answers, list):
+            raise TypeError("Answers must be a list.")
+
+        if not answers:
+            raise ValueError("Answers cannot be empty.")
+
+        for ans in answers:
+            if not isinstance(ans, int) or not (1 <= ans <= 4):
+                raise ValueError(
+                    f"Invalid answer '{ans}'. Must be between 1 and 4."
+                )
+
+        print(f"Valid submission from {name}: {answers}")
+
+    except KeyError as e:
+        print(f"Skipping submission due to missing field: {e}")
+
+    except TypeError as e:
+        print(f"Skipping submission: {e}")
+
+    except ValueError as e:
+        print(f"Skipping submission: {e}")
